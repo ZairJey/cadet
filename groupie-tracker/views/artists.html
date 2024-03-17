@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artists</title>
+</head>
+<body>
+<h1>Artists</h1>
+<div class="search-container">
+    <form action="/search" method="GET">
+        <input type="text" id="searchInput" name="query" placeholder="Search">
+        <ul id="suggestions" style="width: 200px; max-height: 200px; overflow-y: auto;"></ul>
+        <button type="submit">Search</button>
+    </form>
+</div>
+<ul>
+    {{range .}}
+    <li>
+        <h2><a href="/artists/{{.ID}}">{{.Name}}</a></h2>
+        <img src="{{.Image}}" alt="{{.Name}} Image">
+        <p><strong>Members:</strong> {{range $index, $member := .Members}}{{if $index}}, {{end}}{{.}}{{end}}.</p>
+    </li>
+    {{end}}
+</ul>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsList = document.getElementById('suggestions');
+
+    searchInput.addEventListener('input', function() {
+        const query = searchInput.value.trim();
+        if (query === '') {
+            suggestionsList.innerHTML = '';
+            return;
+        }
+        // console.log('sdsdsd')
+        fetch(`/search?query=` + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                // console.log(data)
+                suggestionsList.innerHTML = '';
+                data.forEach(artist => {
+                    const suggestionItem = document.createElement('li');
+                    suggestionItem.textContent = artist.name;
+                    suggestionItem.addEventListener('click', function() {
+                        searchInput.value = artist.name;
+                        suggestionsList.innerHTML = '';
+                    });
+                    suggestionsList.appendChild(suggestionItem);
+
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching suggestions:', error);
+            });
+    });
+</script>
+</body>
+</html>
