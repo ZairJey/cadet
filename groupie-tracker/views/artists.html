@@ -34,27 +34,55 @@
             suggestionsList.innerHTML = '';
             return;
         }
-        // console.log('sdsdsd')
-        fetch(`/search?query=` + encodeURIComponent(query))
-            .then(response => response.json())
-            .then(data => {
-                // console.log(data)
-                suggestionsList.innerHTML = '';
-                data.forEach(artist => {
-                    const suggestionItem = document.createElement('li');
-                    suggestionItem.textContent = artist.name;
-                    suggestionItem.addEventListener('click', function() {
-                        searchInput.value = artist.name;
-                        suggestionsList.innerHTML = '';
-                    });
-                    suggestionsList.appendChild(suggestionItem);
 
+        fetch(`/search?query=${encodeURIComponent(query)}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при запросе: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                suggestionsList.innerHTML = '';
+                if (data.artists) {
+                    data.artists.forEach(artist => {
+                        const suggestionItem = document.createElement('li');
+                        suggestionItem.textContent = `${artist.name} - Artist/Band`;
+                        suggestionsList.appendChild(suggestionItem);
+                    });
+                }
+                if (data.locations) {
+                data.locations.forEach(locationGroup => {
+                    locationGroup.locations.forEach(location => {
+                        if (location.toLowerCase().includes(query.toLowerCase())) {
+                            const suggestionItem = document.createElement('li');
+                            suggestionItem.textContent = `${location} - Location`;
+                            suggestionsList.appendChild(suggestionItem);
+                        }
+                    });
+                });
+                }
+
+                // Check if query matches any member names
+                data.artists.forEach(artist => {
+                    artist.members.forEach(member => {
+                        if (member.toLowerCase().includes(query.toLowerCase())) {
+                            const suggestionItem = document.createElement('li');
+                            suggestionItem.textContent = `${member} - Member`;
+                            suggestionsList.appendChild(suggestionItem);
+                        }
+                    });
                 });
             })
             .catch(error => {
-                console.error('Error fetching suggestions:', error);
+                console.error('Ошибка при получении данных:', error);
             });
     });
+
 </script>
 </body>
 </html>
