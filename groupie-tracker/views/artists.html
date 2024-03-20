@@ -8,10 +8,10 @@
 <body>
 <h1>Artists</h1>
 <div class="search-container">
-    <form action="/search" method="GET">
+    <form id ="searchForm" action="/search" method="GET">
         <input type="text" id="searchInput" name="query" placeholder="Search">
         <ul id="suggestions" style="width: 300px; max-height: 200px; overflow-y: auto;"></ul>
-        <button type="submit">Search</button>
+        <button type="submit" id="searchButton">Search</button>
     </form>
 </div>
 <ul>
@@ -25,8 +25,14 @@
 </ul>
 
 <script>
+
     const searchInput = document.getElementById('searchInput');
     const suggestionsList = document.getElementById('suggestions');
+    const searchButton = document.getElementById('searchButton');
+    const searchForm = document.getElementById('searchForm');
+
+
+
 
     searchInput.addEventListener('input', function() {
         const query = searchInput.value.trim();
@@ -34,7 +40,6 @@
             suggestionsList.innerHTML = '';
             return;
         }
-
         fetch(`/search?query=${encodeURIComponent(query)}`, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -55,6 +60,9 @@
                                 if (member.toLowerCase().includes(query.toLowerCase())) {
                                     const suggestionItem = document.createElement('li');
                                     suggestionItem.textContent = `${member} - Member in ${artist.name}`;
+                                    suggestionItem.addEventListener('click', function () {
+                                        window.location.href = `/artists/${artist.id}`
+                                    })
                                     suggestionsList.appendChild(suggestionItem);
                                 }
                             });
@@ -63,17 +71,26 @@
                         if (artist.name.toLowerCase().includes(query.toLowerCase())) {
                             const suggestionItem = document.createElement('li');
                             suggestionItem.textContent = `${artist.name} - Artist/Band`;
+                            suggestionItem.addEventListener('click', function () {
+                                window.location.href = `/artists/${artist.id}`
+                            })
                             suggestionsList.appendChild(suggestionItem);
                         }
                         const creationDateString = artist.creationDate.toString();
                         if (creationDateString.includes(query)) {
                             const suggestionItem = document.createElement('li');
                             suggestionItem.textContent = `${artist.creationDate} - CreationDate - ${artist.name}`;
+                            suggestionItem.addEventListener('click', function () {
+                                window.location.href = `/artists/${artist.id}`
+                            })
                             suggestionsList.appendChild(suggestionItem);
                         }
                         if (artist.firstAlbum.includes(query)) {
                             const suggestionItem = document.createElement('li');
                             suggestionItem.textContent = `${artist.firstAlbum} - FirstAlbum - ${artist.name}`;
+                            suggestionItem.addEventListener('click', function () {
+                                window.location.href = `/artists/${artist.id}`
+                            })
                             suggestionsList.appendChild(suggestionItem);
                         }
                     });
@@ -83,7 +100,10 @@
                         locationGroup.locations.forEach(location => {
                             if (location.toLowerCase().includes(query.toLowerCase())) {
                                 const suggestionItem = document.createElement('li');
-                                suggestionItem.textContent = `${location} - Location`;
+                                suggestionItem.textContent = `${location} - Location ${locationGroup.name}`;
+                                suggestionItem.addEventListener('click', function () {
+                                    window.location.href = `/artists/${locationGroup.id}`
+                                })
                                 suggestionsList.appendChild(suggestionItem);
                             }
                         });
@@ -94,6 +114,11 @@
             .catch(error => {
                 console.error('Ошибка при получении данных:', error);
             });
+    });
+
+    searchButton.addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent the default form submission behavior
+        searchForm.submit(); // Manually submit the form
     });
 
 </script>
