@@ -27,7 +27,6 @@ func SearchPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//var idInLocations []int
 	for _, val := range locations.Index {
 		for _, loc := range val.Locations {
 			if strings.Contains(strings.ToLower(loc), query) {
@@ -35,7 +34,6 @@ func SearchPage(w http.ResponseWriter, r *http.Request) {
 					ID:        val.ID,
 					Locations: val.Locations,
 				})
-				//idInLocations = append(idInLocations, val.ID)
 			}
 		}
 	}
@@ -45,7 +43,6 @@ func SearchPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	flag := true
-	//var ArtistsResult []models.Artist
 	for _, v := range artists {
 		if strings.Contains(strings.ToLower(v.Name), query) ||
 			strings.Contains(strings.ToLower(v.FirstAlbum), query) ||
@@ -62,19 +59,18 @@ func SearchPage(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	//for _, member := range artists {
-	//	for _, val := range member.Members {
-	//		if strings.Contains(strings.ToLower(val), query) {
-	//			ArtistsResult = append(ArtistsResult, member)
-	//			break
-	//		}
-	//	}
-	//}
+	for _, val := range artists {
+		if strings.Contains(strings.ToLower(val.Name), query) {
+			searchResult.Artists = append(searchResult.Artists, val)
+		}
+	}
+
+	searchResult1 := removeDublicates(searchResult)
 
 	if r.Header.Get("X-Requested-With") == "XMLHttpRequest" {
 
 		w.Header().Set("Content-Type", "application/json")
-		encodedData, err := json.Marshal(searchResult)
+		encodedData, err := json.Marshal(searchResult1)
 		if err != nil {
 			http.Error(w, "Ошибка при кодировании данных в JSON", http.StatusInternalServerError)
 			return
@@ -103,11 +99,28 @@ func SearchPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//func IfConnect(idIwki []int, id int) bool {
-//	for _, num := range idIwki {
-//		if id == num {
-//			return true
-//		}
-//	}
-//	return false
-//}
+func removeDublicates(stru SeachResult) SeachResult {
+	uniqueArtists := make(map[int]models.Artist)
+	for _, val := range stru.Artists {
+		uniqueArtists[val.ID] = val
+	}
+	var uniqueArtistsList []models.Artist
+	for _, val := range uniqueArtists {
+		uniqueArtistsList = append(uniqueArtistsList, val)
+	}
+	uniqueLocations := make(map[int][]string)
+	for _, location := range stru.Locations {
+		if _, found := uniqueLocations[location.ID]; !found {
+			uniqueLocations[location.ID] = location.Locations
+		}
+	}
+	var uniqueLocationsList []models.Locationss
+	for id, locations := range uniqueLocations {
+		uniqueLocationsList = append(uniqueLocationsList, models.Locationss{ID: id, Locations: locations})
+	}
+
+	return SeachResult{
+		Artists:   uniqueArtistsList,
+		Locations: uniqueLocationsList,
+	}
+}

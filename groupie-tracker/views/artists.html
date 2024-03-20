@@ -10,7 +10,7 @@
 <div class="search-container">
     <form action="/search" method="GET">
         <input type="text" id="searchInput" name="query" placeholder="Search">
-        <ul id="suggestions" style="width: 200px; max-height: 200px; overflow-y: auto;"></ul>
+        <ul id="suggestions" style="width: 300px; max-height: 200px; overflow-y: auto;"></ul>
         <button type="submit">Search</button>
     </form>
 </div>
@@ -50,33 +50,46 @@
                 suggestionsList.innerHTML = '';
                 if (data.artists) {
                     data.artists.forEach(artist => {
-                        const suggestionItem = document.createElement('li');
-                        suggestionItem.textContent = `${artist.name} - Artist/Band`;
-                        suggestionsList.appendChild(suggestionItem);
+                        if (artist.members) {
+                            artist.members.forEach(member => {
+                                if (member.toLowerCase().includes(query.toLowerCase())) {
+                                    const suggestionItem = document.createElement('li');
+                                    suggestionItem.textContent = `${member} - Member in ${artist.name}`;
+                                    suggestionsList.appendChild(suggestionItem);
+                                }
+                            });
+                        }
+                        // Add an else if artists don't have members
+                        if (artist.name.toLowerCase().includes(query.toLowerCase())) {
+                            const suggestionItem = document.createElement('li');
+                            suggestionItem.textContent = `${artist.name} - Artist/Band`;
+                            suggestionsList.appendChild(suggestionItem);
+                        }
+                        const creationDateString = artist.creationDate.toString();
+                        if (creationDateString.includes(query)) {
+                            const suggestionItem = document.createElement('li');
+                            suggestionItem.textContent = `${artist.creationDate} - CreationDate - ${artist.name}`;
+                            suggestionsList.appendChild(suggestionItem);
+                        }
+                        if (artist.firstAlbum.includes(query)) {
+                            const suggestionItem = document.createElement('li');
+                            suggestionItem.textContent = `${artist.firstAlbum} - FirstAlbum - ${artist.name}`;
+                            suggestionsList.appendChild(suggestionItem);
+                        }
                     });
                 }
                 if (data.locations) {
-                data.locations.forEach(locationGroup => {
-                    locationGroup.locations.forEach(location => {
-                        if (location.toLowerCase().includes(query.toLowerCase())) {
-                            const suggestionItem = document.createElement('li');
-                            suggestionItem.textContent = `${location} - Location`;
-                            suggestionsList.appendChild(suggestionItem);
-                        }
+                    data.locations.forEach(locationGroup => {
+                        locationGroup.locations.forEach(location => {
+                            if (location.toLowerCase().includes(query.toLowerCase())) {
+                                const suggestionItem = document.createElement('li');
+                                suggestionItem.textContent = `${location} - Location`;
+                                suggestionsList.appendChild(suggestionItem);
+                            }
+                        });
                     });
-                });
                 }
 
-                // Check if query matches any member names
-                data.artists.forEach(artist => {
-                    artist.members.forEach(member => {
-                        if (member.toLowerCase().includes(query.toLowerCase())) {
-                            const suggestionItem = document.createElement('li');
-                            suggestionItem.textContent = `${member} - Member`;
-                            suggestionsList.appendChild(suggestionItem);
-                        }
-                    });
-                });
             })
             .catch(error => {
                 console.error('Ошибка при получении данных:', error);
